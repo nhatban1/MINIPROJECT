@@ -17,7 +17,7 @@ public class SecurityConfig {
         .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản")); }
     @Bean SecurityFilterChain security(HttpSecurity http) throws Exception {
         return http.csrf(csrf->csrf.disable()).authorizeHttpRequests(auth->auth
-            .requestMatchers("/", "/index.html", "/app.js", "/scene.js", "/styles.css", "/tokens.css", "/api/products/**", "/api/consultations", "/api/register", "/api/assistant/**").permitAll()
+            .requestMatchers("/", "/app.js", "/scene.js", "/styles.css", "/tokens.css", "/api/products/**", "/api/consultations", "/api/register", "/api/assistant/**").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults()).build();
