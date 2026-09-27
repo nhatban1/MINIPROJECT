@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="NovaGear — linh kiện, PC và tư vấn cấu hình công nghệ.">
+  <title th:text="${storeName} + ' · PC đúng nhu cầu'">NovaGear · PC đúng nhu cầu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+  <div class="announce">Miễn phí lắp ráp · Kiểm tra tương thích · Giao hàng toàn quốc</div>
+  <header class="nav" id="nav">
+    <a class="brand" href="#/home" aria-label="NovaGear trang chủ"><span>N</span><span class="brand__name" th:text="${storeName}">NOVAGEAR</span></a>
+    <nav class="nav__links" aria-label="Điều hướng chính">
+      <button class="nav__link" id="categoryTrigger" aria-expanded="false">Sản phẩm <span>⌄</span></button>
+      <a class="nav__link" href="#/build">Build PC</a><a class="nav__link" href="#/consult">Tư vấn</a>
+    </nav>
+    <label class="search"><span>⌕</span><input id="globalSearch" type="search" placeholder="Tìm CPU, VGA, màn hình…" aria-label="Tìm sản phẩm"></label>
+    <div class="nav__actions">
+      <div class="account-wrap"><button class="icon-button account-button" id="accountBtn" aria-label="Tài khoản" aria-expanded="false"><span aria-hidden="true">◎</span><span class="account-button__label">Đăng nhập / Đăng ký</span></button><div class="account-menu" id="accountMenu" hidden></div></div>
+      <button class="cart-button" id="cartBtn">Giỏ <b id="cartCount">0</b></button>
+      <button class="menu-button" id="menuBtn" aria-label="Mở menu" aria-expanded="false">Menu</button>
+    </div>
+    <div class="mega" id="megaMenu" aria-hidden="true"><div id="megaContent"></div><a class="mega__feature" href="#/build"><small>BUILDER</small><strong>Chọn đúng ngay từ đầu.</strong><span>Kiểm tra socket, công suất và ngân sách →</span></a></div>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer class="footer">
+    <a class="brand" href="#/home"><span>N</span><span class="brand__name" th:text="${storeName}">NOVAGEAR</span></a>
+    <p th:text="${storeTagline}">Phần cứng rõ thông số. Cấu hình đúng nhu cầu.</p>
+    <div><a th:each="link : ${footerLinks}" th:href="${link.href}" th:text="${link.label}">Liên kết</a></div>
+    <small>Đồ án minh họa · Spring Boot 3 · Thymeleaf · H2 Database</small>
+  </footer>
+  <aside class="drawer" id="cartDrawer" aria-hidden="true"><div class="drawer__head"><div><small>GIỎ HÀNG</small><h2>Cấu hình đang chọn</h2></div><button class="icon-button" data-close-cart aria-label="Đóng giỏ">×</button></div><div id="cartItems"></div><div class="drawer__foot"><div><span>Tạm tính</span><strong id="cartTotal">0₫</strong></div><button class="btn btn--primary" id="checkoutBtn">Đặt đơn hàng</button></div></aside>
+  <div class="scrim" id="scrim"></div>
+  <dialog id="loginDialog"><form id="loginForm" class="dialog-form"><div class="dialog-head"><div><small>TÀI KHOẢN NOVAGEAR</small><h2>Đăng nhập</h2></div><button type="button" class="icon-button" data-close-dialog>×</button></div><label>Tên đăng nhập<input name="username" autocomplete="username" required></label><label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required></label><p class="helper">Chưa có tài khoản? <button type="button" class="text-button" data-open-register>Đăng ký</button></p><button class="btn btn--primary">Đăng nhập</button></form></dialog>
+  <dialog id="registerDialog"><form id="registerForm" class="dialog-form"><div class="dialog-head"><div><small>TÀI KHOẢN NOVAGEAR</small><h2>Tạo tài khoản</h2></div><button type="button" class="icon-button" data-close-dialog>×</button></div><label>Họ và tên<input name="fullName" autocomplete="name" minlength="2" maxlength="100" required></label><label>Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label><label>Tên đăng nhập<input name="username" autocomplete="username" pattern="[-a-zA-Z0-9._]{3,30}" minlength="3" maxlength="30" required></label><label>Mật khẩu<input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label><label>Nhập lại mật khẩu<input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label><p class="helper">Đã có tài khoản? <button type="button" class="text-button" data-open-login>Đăng nhập</button></p><button class="btn btn--primary">Tạo tài khoản</button></form></dialog>
+  <dialog id="productDialog"><form id="productForm" class="dialog-form"><div class="dialog-head"><div><small>ADMIN CRUD</small><h2 id="productFormTitle">Thêm sản phẩm</h2></div><button type="button" class="icon-button" data-close-dialog>×</button></div><input type="hidden" name="id"><div class="form-grid"><label>Tên sản phẩm<input name="name" required></label><label>Danh mục<input name="category" required></label><label>Thương hiệu<input name="brand" required></label><label>Giá bán<input name="price" type="number" min="0" required></label><label>Giá niêm yết<input name="oldPrice" type="number" min="0"></label><label>Tồn kho<input name="stock" type="number" min="0" required></label><label>Socket<input name="socket"></label><label>Mã hình khối<input name="icon" value="PC"></label></div><label>Thông số<textarea name="specs" required></textarea></label><label class="check"><input name="featured" type="checkbox"> Sản phẩm nổi bật</label><label class="check"><input name="active" type="checkbox" checked> Đang kinh doanh</label><button class="btn btn--primary">Lưu sản phẩm</button></form></dialog>
+  <dialog class="viewer-dialog" id="product3dDialog"><div class="viewer__layout"><div class="viewer__stage" id="productScene" aria-label="Mô hình 3D sản phẩm"></div><div class="viewer__details"><div class="dialog-head"><div><small>PRODUCT VIEWER · 3D</small><h2 id="sceneProductName">Sản phẩm</h2></div><button type="button" class="icon-button" id="sceneClose" aria-label="Đóng xem 3D">×</button></div><p id="sceneProductSpecs"></p><strong id="sceneProductPrice"></strong></div></div></dialog>
+  <dialog id="checkoutDialog"><form id="checkoutForm" class="dialog-form"><div class="dialog-head"><div><small>THANH TOÁN</small><h2>Thông tin nhận hàng</h2></div><button type="button" class="icon-button" data-close-dialog>×</button></div><label>Họ và tên<input name="customerName" required></label><label>Số điện thoại<input name="phone" required pattern="[0-9]{9,11}"></label><label>Địa chỉ<textarea name="address" required></textarea></label><button class="btn btn--primary">Xác nhận đặt hàng</button></form></dialog>
+  <section class="assistant" aria-label="Trợ lý NovaGear">
+    <button class="assistant__launcher" id="assistantToggle" aria-expanded="false" aria-controls="assistantPanel"><span aria-hidden="true">✳</span><span>Tư vấn cấu hình</span></button>
+    <div class="assistant__panel" id="assistantPanel" hidden>
+      <div class="assistant__head"><div><small>NOVAGEAR ASSIST</small><h2>Chọn cấu hình phù hợp</h2><p>Gợi ý catalog demo · không cần đăng nhập</p></div><button class="icon-button" id="assistantClose" aria-label="Đóng tư vấn">×</button></div>
+      <div class="assistant__messages" id="assistantMessages" aria-live="polite"><p class="assistant__message assistant__message--bot">Chào bạn. Bạn cần máy để chơi game, làm việc hay học tập? Cho mình biết ngân sách nhé.</p></div>
+      <form class="assistant__form" id="assistantForm"><label class="sr-only" for="assistantInput">Nhu cầu hoặc ngân sách</label><input id="assistantInput" name="message" placeholder="Ví dụ: PC gaming 25 triệu" maxlength="500" required><button class="btn btn--primary" aria-label="Gửi tin nhắn">Gửi</button></form>
+    </div>
+  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+  <script th:src="@{/app.js}" defer></script>
+  <script type="module" th:src="@{/scene.js}"></script>
+</body>
+</html>
