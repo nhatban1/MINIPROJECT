@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang chủ - Cửa hàng Linh kiện PC</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f8; color: #333; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 15px; }
-        h1 { margin: 0; color: #0066cc; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e8e2ee; padding-bottom: 15px; }
+        h1 { margin: 0; color: #594a82; font-size: 24px; }
+        h2 { color: #4a3d6e; font-size: 20px; margin-bottom: 20px; }
         
         /* Khung lưới chứa sản phẩm */
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .product-card h3 { margin-top: 0; color: #222; font-size: 18px; }
-        .product-price { color: #d9534f; font-weight: bold; font-size: 16px; margin: 10px 0; }
-        .product-sku { color: #666; font-size: 13px; }
-        .product-category { display: inline-block; background: #e2e8f0; color: #2d3748; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-top: 10px; }
-        .no-product { grid-column: 1 / -1; text-align: center; color: #777; padding: 40px; font-size: 16px; }
+        .product-card { background: #ffffff; border: 1px solid #e8e2ee; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(107, 91, 149, 0.1); }
+        .product-card h3 { margin-top: 0; color: #2c253d; font-size: 18px; }
+        .product-price { color: #8856a7; font-weight: bold; font-size: 16px; margin: 12px 0; }
+        .product-sku { color: #7a738c; font-size: 13px; }
+        .product-category { display: inline-block; background: #e8e2ee; color: #594a82; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 12px; }
+        .no-product { grid-column: 1 / -1; text-align: center; color: #7a738c; padding: 40px; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <header>
         <h1>PC Component Store</h1>
-        
     </header>
 
     <h2>Danh mục Linh kiện nổi bật</h2>
@@ -42,7 +43,6 @@
 
         async function loadHomeProducts() {
             try {
-                // 1. Tải trước danh sách Danh mục để tạo bản đồ (Map) tra cứu tên theo ID
                 const catRes = await fetch(categoryApi);
                 const categories = await catRes.json();
                 const categoriesMap = {};
@@ -50,7 +50,6 @@
                     categoriesMap[c.id] = c.name;
                 });
 
-                // 2. Tải danh sách Linh kiện
                 const response = await fetch(deviceApi);
                 const devices = await response.json();
                 
@@ -63,9 +62,7 @@
                 }
 
                 devices.forEach(d => {
-                    // Lấy ID danh mục từ đối tượng trả về hoặc từ localStorage (bộ nhớ lưu vết của trang quản trị)
                     let categoryId = (d.category && d.category.id) ? d.category.id : localStorage.getItem('device_cat_' + d.id);
-                    // Lấy tên danh mục ưu tiên từ server, nếu không có thì tra cứu trong categoriesMap hoặc lấy từ localStorage
                     let categoryName = (d.category && d.category.name) ? d.category.name : (categoriesMap[categoryId] || 'Chưa phân loại');
 
                     container.innerHTML += `
