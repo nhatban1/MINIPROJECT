@@ -6,22 +6,21 @@
     <title>Hệ thống Quản lý Bán Linh kiện PC</title>
     <style>
         /* Thiết lập tổng thể màn hình */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f8; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f5fa; display: flex; height: 100vh; overflow: hidden; }
         
-        /* 1. Phần Sidebar cố định bên trái */
-        sidebar { width: 250px; background: #2c3e50; color: white; height: 100%; padding-top: 20px; box-sizing: border-box; flex-shrink: 0; }
-        sidebar h2 { text-align: center; font-size: 18px; margin-bottom: 30px; color: #ecf0f1; }
-        sidebar a { display: block; color: #b8c7ce; padding: 15px 20px; text-decoration: none; font-size: 15px; transition: 0.2s; cursor: pointer; }
-        sidebar a:hover, sidebar a.active { background: #1abc9c; color: white; }
+        /* 1. Phần Sidebar cố định bên trái (Tông Lavender đậm sang trọng) */
+        sidebar { width: 250px; background: #6b5b95; color: white; height: 100%; padding-top: 20px; box-sizing: border-box; flex-shrink: 0; box-shadow: 2px 0 8px rgba(107, 91, 149, 0.15); }
+        sidebar h2 { text-align: center; font-size: 18px; margin-bottom: 30px; color: #f3eff5; letter-spacing: 0.5px; }
+        sidebar a { display: block; color: #dcd6e4; padding: 15px 20px; text-decoration: none; font-size: 15px; transition: 0.2s; cursor: pointer; border-left: 4px solid transparent; }
+        sidebar a:hover { background: #594a82; color: white; }
+        sidebar a.active { background: #8878b0; color: white; border-left: 4px solid #dcd6e4; }
 
         /* 2. Vùng chứa nội dung bên phải (Khung iframe) */
         .content-area { flex-grow: 1; height: 100%; background: #ffffff; }
         
         /* Thẻ iframe chiếm trọn vùng bên phải, không viền */
         iframe { width: 100%; height: 100%; border: none; }
-		a{
-			font-weight:bold;
-		}
+        a { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -29,28 +28,20 @@
     <!-- SIDEBAR BÊN TRÁI -->
     <sidebar>
         <h2>Trang Linh Kiện PC</h2>
-        <!-- Khi bấm vào sẽ gọi hàm đổi trang trong iframe -->
         <a onclick="loadPage('home.html', this)" id="nav-home" class="active">Trang Chủ (Cửa hàng)</a>
         <a onclick="loadPage('index.html', this)" id="nav-admin">Quản Lý Linh Kiện</a>
     </sidebar>
 
-    <!-- VÙNG HIỂN THỊ NỘI DUNG (NHÚNG CÁC FILE HTML KHÁC VÀO ĐÂY) -->
+    <!-- VÙNG HIỂN THỊ NỘI DUNG -->
     <div class="content-area">
-        <!-- Mặc định khi vừa vào web sẽ load file home.html -->
         <iframe id="main-frame" src="home.html"></iframe>
     </div>
 
     <script>
-        // Hàm chuyển trang mượt mà qua lại giữa các file HTML độc lập
         function loadPage(pageUrl, element) {
-            // 1. Đổi đường dẫn file HTML hiển thị trong iframe
             document.getElementById('main-frame').src = pageUrl;
-
-            // 2. Xóa hiệu ứng 'active' (đang chọn) ở tất cả các nút trên menu
             const links = document.querySelectorAll('sidebar a');
             links.forEach(link => link.classList.remove('active'));
-
-            // 3. Thêm hiệu ứng 'active' vào nút vừa được bấm
             element.classList.add('active');
         }
     </script>
