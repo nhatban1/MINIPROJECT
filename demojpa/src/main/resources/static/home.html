@@ -23,9 +23,12 @@
 </head>
 <body>
 
-    <header>
-        <h1>PC Component Store</h1>
-    </header>
+	<header>
+	    <h1>PC Component Store</h1>
+	    <div id="auth-menu">
+	        <!-- JavaScript sẽ tự động điền nút bấm vào đây tùy theo trạng thái đăng nhập -->
+	    </div>
+	</header>
 
     <h2>Danh mục Linh kiện nổi bật</h2>
 
@@ -40,7 +43,39 @@
         window.onload = function() {
             loadHomeProducts();
         };
+		// Kiểm tra trạng thái đăng nhập khi tải trang chủ
+		window.onload = function() {
+		    loadHomeProducts();
+		    checkAuthStatus();
+		};
 
+		function checkAuthStatus() {
+		    const loggedUser = localStorage.getItem('pc_logged_in_user');
+		    const authMenu = document.getElementById('auth-menu');
+
+		    if (loggedUser) {
+		        // Nếu đã đăng nhập, hiện tên và nút Đăng xuất
+		        authMenu.innerHTML = `
+		            <span style="margin-right: 15px; font-weight: bold; color: #594a82;">Xin chào, ${loggedUser}</span>
+		            <button onclick="logout()" style="background-color: #d96868; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">Đăng xuất</button>
+		        `;
+		    } else {
+		        // Nếu chưa đăng nhập, hiện nút Đăng nhập / Đăng ký
+		        authMenu.innerHTML = `
+		            <a href="login.html" style="text-decoration: none; background-color: #6b5b95; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin-left: 10px;">Đăng nhập</a>
+		            <a href="register.html" style="text-decoration: none; background-color: #bfaecb; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin-left: 5px;">Đăng ký</a>
+		        `;
+		    }
+		}
+
+		function logout() {
+		    // Xóa thông tin đăng nhập khỏi localStorage
+		    localStorage.removeItem('pc_logged_in_user');
+		    alert('Đã đăng xuất tài khoản thành công!');
+		    
+		    // Tải lại trang để cập nhật giao diện
+		    location.reload();
+		}
         async function loadHomeProducts() {
             try {
                 const catRes = await fetch(categoryApi);
@@ -65,14 +100,14 @@
                     let categoryId = (d.category && d.category.id) ? d.category.id : localStorage.getItem('device_cat_' + d.id);
                     let categoryName = (d.category && d.category.name) ? d.category.name : (categoriesMap[categoryId] || 'Chưa phân loại');
 
-                    container.innerHTML += `
-                        <div class="product-card">
-                            <h3>${d.name}</h3>
-                            <div class="product-sku">Mã SKU: ${d.sku}</div>
-                            <div class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</div>
-                            <div><span class="product-category">${categoryName}</span></div>
-                        </div>
-                    `;
+					container.innerHTML += `
+					    <div class="product-card" onclick="window.location.href='detail.html?id=${d.id}'" style="cursor: pointer;">
+					        <h3>${d.name}</h3>
+					        <div class="product-sku">Mã SKU: ${d.sku}</div>
+					        <div class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</div>
+					        <div><span class="product-category">${categoryName}</span></div>
+					    </div>
+					`;
                 });
             } catch (err) {
                 console.error('Lỗi tải sản phẩm:', err);
