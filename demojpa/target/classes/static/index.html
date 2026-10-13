@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Linh kiện PC</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .box { background: #fff; padding: 15px; border: 1px solid #ddd; width: 320px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: inline-block; width: 95px; }
+        input, select { padding: 5px; width: 200px; }
+        button { padding: 6px 12px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .actions button { margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>Hệ thống Quản lý Bán Linh kiện PC</h2>
+    <div class="container">
+        <!-- Form Linh Kiện (Devices) -->
+        <div class="box">
+            <h3 id="form-title" style="margin-top:0;">Thêm Linh Kiện Mới</h3>
+            <input type="hidden" id="device-id">
+            <div class="form-group">
+                <label for="name">Tên linh kiện:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="sku">Mã SKU:</label>
+                <input type="text" id="sku" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Giá (VNĐ):</label>
+                <input type="number" id="price" required>
+            </div>
+            <div class="form-group">
+                <label for="category">Danh mục:</label>
+                <select id="category" required>
+                    <option value="">-- Chọn Danh mục --</option>
+                </select>
+            </div>
+            <button onclick="saveDevice()">Lưu Linh Kiện</button>
+            <button onclick="resetForm()" style="background-color: #ccc;">Hủy</button>
+        </div>
+
+        <!-- Form Danh Mục (Categories) -->
+        <div class="box">
+            <h3 style="margin-top:0;">Thêm Danh Mục Mới</h3>
+            <div class="form-group">
+                <label for="categoryName">Tên danh mục:</label>
+                <input type="text" id="categoryName" required>
+            </div>
+            <button onclick="saveCategory()" style="background-color: #28a745; color: white;">Thêm Danh Mục</button>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách Linh Kiện -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên linh kiện</th>
+                <th>Mã SKU</th>
+                <th>Giá</th>
+                <th>Danh mục</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="device-list"></tbody>
+    </table>
+
+    <script>
+        const deviceApi = '/api/devices';
+        const categoryApi = '/api/categories';
+
+        let categoriesMap = {}; // Lưu tên danh mục theo ID
+
+        window.onload = loadData;
+
+        async function loadData() {
+            try {
+                // 1. Tải danh mục trước
+                const catRes = await fetch(categoryApi);
+                const categories = await catRes.json();
+                
+                const select = document.getElementById('category');
+                select.innerHTML = '<option value="">-- Chọn Danh mục --</option>';
+                categories.forEach(c => {
+                    categoriesMap[c.id] = c.name;
+                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+
+                // 2. Tải danh sách linh kiện sau
+                const devRes = await fetch(deviceApi);
+                const devices = await devRes.json();
+                
+                const tbody = document.getElementById('device-list');
+                tbody.innerHTML = '';
+                
+                devices.forEach(d => {
+                    let categoryId = (d.category && d.category.id) ? d.category.id : localStorage.getItem('device_cat_' + d.id);
+                    let categoryName = (d.category && d.category.name) ? d.category.name : (categoriesMap[categoryId] || 'Chưa có');
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${d.id}</td>
+                            <td>${d.name}</td>
+                            <td>${d.sku}</td>
+                            <td>${d.price}</td>
+                            <td>${categoryName}</td>
+                            <td class="actions">
+                                <button onclick="editDevice(${d.id}, '${d.name}', '${d.sku}', ${d.price}, '${categoryId || ''}')" style="background-color: #ffc107;">Sửa</button>
+                                <button onclick="deleteDevice(${d.id})" style="background-color: #ff4d4d; color: white;">Xóa</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error('Lỗi tải dữ liệu:', err);
+            }
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('categoryName').value;
+            if (!name) { alert('Nhập tên danh mục!'); return; }
+
+            fetch(categoryApi, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            }).then(res => {
+                if (res.ok) {
+                    alert('Thêm danh mục thành công!');
+                    document.getElementById('categoryName').value = '';
+                    loadData();
+                } else { alert('Thêm danh mục thất bại!'); }
+            });
+        }
+
+        async function saveDevice() {
+            const id = document.getElementById('device-id').value;
+            const name = document.getElementById('name').value;
+            const sku = document.getElementById('sku').value;
+            const price = document.getElementById('price').value;
+            const categoryId = document.getElementById('category').value;
+
+            if (!name || !sku || !price || !categoryId) {
+                alert('Vui lòng điền đủ thông tin và chọn danh mục!');
+                return;
+            }
+
+            // Khớp 100% với DeviceRequest.java (name, sku, price, categoryId)
+            const data = {
+                name: name,
+                sku: sku,
+                price: parseFloat(price),
+                categoryId: parseInt(categoryId)
+            };
+
+            try {
+                if (id) {
+                    await fetch(`${deviceApi}/${id}`, { method: 'DELETE' });
+                    localStorage.removeItem('device_cat_' + id);
+                }
+
+                const res = await fetch(deviceApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    try {
+                        const savedDevice = await res.json();
+                        const newId = savedDevice.id || id;
+                        if (newId) {
+                            localStorage.setItem('device_cat_' + newId, categoryId);
+                        }
+                    } catch (e) {
+                        if (id) localStorage.setItem('device_cat_' + id, categoryId);
+                    }
+
+                    alert('Lưu linh kiện thành công!');
+                    resetForm();
+                    loadData();
+                } else {
+                    const errText = await res.text();
+                    alert('Lưu thất bại (Mã SKU có thể bị trùng): ' + errText);
+                }
+            } catch (err) {
+                console.error('Lỗi:', err);
+            }
+        }
+
+        function editDevice(id, name, sku, price, categoryId) {
+            document.getElementById('device-id').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('sku').value = sku;
+            document.getElementById('price').value = price;
+            document.getElementById('category').value = categoryId;
+            document.getElementById('form-title').innerText = 'Cập nhật Linh Kiện (ID: ' + id + ')';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteDevice(id) {
+            if (confirm('Xóa linh kiện này?')) {
+                fetch(`${deviceApi}/${id}`, { method: 'DELETE' })
+                    .then(res => {
+                        if (res.ok) {
+                            localStorage.removeItem('device_cat_' + id);
+                            loadData();
+                        } else {
+                            alert('Xóa thất bại!');
+                        }
+                    });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('device-id').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('sku').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('form-title').innerText = 'Thêm Linh Kiện Mới';
+        }
+    </script>
+</body>
+</html>
