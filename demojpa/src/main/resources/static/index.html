@@ -5,17 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Linh kiện PC</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
-        .container { display: flex; gap: 20px; flex-wrap: wrap; }
-        .box { background: #fff; padding: 15px; border: 1px solid #ddd; width: 320px; }
-        .form-group { margin-bottom: 10px; }
-        label { display: inline-block; width: 95px; }
-        input, select { padding: 5px; width: 200px; }
-        button { padding: 6px 12px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .actions button { margin-right: 5px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; }
+        h2 { color: #594a82; margin-top: 0; margin-bottom: 20px; font-size: 22px; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .box { background: #ffffff; padding: 20px; border: 1px solid #e8e2ee; border-radius: 8px; width: 320px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        .box h3 { color: #4a3d6e; font-size: 16px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: inline-block; width: 95px; font-size: 14px; color: #4a3d6e; font-weight: bold; }
+        input, select { padding: 8px; width: 200px; border: 1px solid #dcd6e4; border-radius: 6px; background: #faf8fc; }
+        input:focus, select:focus { outline: none; border-color: #8878b0; background: #fff; }
+        
+        /* Nút bấm phối màu Lavender và trung tính */
+        button { padding: 8px 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-primary { background-color: #6b5b95; color: white; }
+        .btn-success { background-color: #72a0c1; color: white; }
+        .btn-warning { background-color: #e0b42b; color: white; }
+        .btn-danger { background-color: #d96868; color: white; }
+        .btn-secondary { background-color: #bfaecb; color: white; }
+
+        /* Bảng danh sách */
+        table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); border: 1px solid #e8e2ee; }
+        th, td { border-bottom: 1px solid #e8e2ee; padding: 12px 15px; text-align: left; font-size: 14px; }
+        th { background-color: #e8e2ee; color: #4a3d6e; font-weight: bold; }
+        tr:hover { background-color: #faf8fc; }
+        .actions button { margin-right: 5px; padding: 6px 10px; }
     </style>
 </head>
 <body>
@@ -44,8 +58,10 @@
                     <option value="">-- Chọn Danh mục --</option>
                 </select>
             </div>
-            <button onclick="saveDevice()">Lưu Linh Kiện</button>
-            <button onclick="resetForm()" style="background-color: #ccc;">Hủy</button>
+            <div style="margin-top: 15px;">
+                <button class="btn-primary" onclick="saveDevice()">Lưu Linh Kiện</button>
+                <button class="btn-secondary" onclick="resetForm()">Hủy</button>
+            </div>
         </div>
 
         <!-- Form Danh Mục (Categories) -->
@@ -55,7 +71,9 @@
                 <label for="categoryName">Tên danh mục:</label>
                 <input type="text" id="categoryName" required>
             </div>
-            <button onclick="saveCategory()" style="background-color: #28a745; color: white;">Thêm Danh Mục</button>
+            <div style="margin-top: 15px;">
+                <button class="btn-success" onclick="saveCategory()">Thêm Danh Mục</button>
+            </div>
         </div>
     </div>
 
@@ -78,13 +96,12 @@
         const deviceApi = '/api/devices';
         const categoryApi = '/api/categories';
 
-        let categoriesMap = {}; // Lưu tên danh mục theo ID
+        let categoriesMap = {};
 
         window.onload = loadData;
 
         async function loadData() {
             try {
-                // 1. Tải danh mục trước
                 const catRes = await fetch(categoryApi);
                 const categories = await catRes.json();
                 
@@ -95,7 +112,6 @@
                     select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
                 });
 
-                // 2. Tải danh sách linh kiện sau
                 const devRes = await fetch(deviceApi);
                 const devices = await devRes.json();
                 
@@ -111,11 +127,11 @@
                             <td>${d.id}</td>
                             <td>${d.name}</td>
                             <td>${d.sku}</td>
-                            <td>${d.price}</td>
+                            <td>${Number(d.price).toLocaleString('vi-VN')} VNĐ</td>
                             <td>${categoryName}</td>
                             <td class="actions">
-                                <button onclick="editDevice(${d.id}, '${d.name}', '${d.sku}', ${d.price}, '${categoryId || ''}')" style="background-color: #ffc107;">Sửa</button>
-                                <button onclick="deleteDevice(${d.id})" style="background-color: #ff4d4d; color: white;">Xóa</button>
+                                <button class="btn-warning" onclick="editDevice(${d.id}, '${d.name}', '${d.sku}', ${d.price}, '${categoryId || ''}')">Sửa</button>
+                                <button class="btn-danger" onclick="deleteDevice(${d.id})">Xóa</button>
                             </td>
                         </tr>
                     `;
@@ -154,7 +170,6 @@
                 return;
             }
 
-            // Khớp 100% với DeviceRequest.java (name, sku, price, categoryId)
             const data = {
                 name: name,
                 sku: sku,
