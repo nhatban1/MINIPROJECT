@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Cửa hàng Linh kiện PC</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e8e2ee; padding-bottom: 15px; }
+        h1 { margin: 0; color: #594a82; font-size: 24px; }
+        h2 { color: #4a3d6e; font-size: 20px; margin-bottom: 20px; }
+        
+        /* Khung lưới chứa sản phẩm */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .product-card { background: #ffffff; border: 1px solid #e8e2ee; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(107, 91, 149, 0.1); }
+        .product-card h3 { margin-top: 0; color: #2c253d; font-size: 18px; }
+        .product-price { color: #8856a7; font-weight: bold; font-size: 16px; margin: 12px 0; }
+        .product-sku { color: #7a738c; font-size: 13px; }
+        .product-category { display: inline-block; background: #e8e2ee; color: #594a82; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 12px; }
+        .no-product { grid-column: 1 / -1; text-align: center; color: #7a738c; padding: 40px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+	<header>
+	    <h1>PC Component Store</h1>
+	    <div id="auth-menu">
+	        <!-- JavaScript sẽ tự động điền nút bấm vào đây tùy theo trạng thái đăng nhập -->
+	    </div>
+	</header>
+
+    <h2>Danh mục Linh kiện nổi bật</h2>
+
+    <div class="product-grid" id="product-container">
+        <!-- Dữ liệu sản phẩm hiển thị ở đây -->
+    </div>
+
+    <script>
+        const deviceApi = '/api/devices';
+        const categoryApi = '/api/categories';
+
+        window.onload = function() {
+            loadHomeProducts();
+        };
+		// Kiểm tra trạng thái đăng nhập khi tải trang chủ
+		window.onload = function() {
+		    loadHomeProducts();
+		    checkAuthStatus();
+		};
+
+		function checkAuthStatus() {
+		    const loggedUser = localStorage.getItem('pc_logged_in_user');
+		    const authMenu = document.getElementById('auth-menu');
+
+		    if (loggedUser) {
+		        // Nếu đã đăng nhập, hiện tên và nút Đăng xuất
+		        authMenu.innerHTML = `
+		            <span style="margin-right: 15px; font-weight: bold; color: #594a82;">Xin chào, ${loggedUser}</span>
+		            <button onclick="logout()" style="background-color: #d96868; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">Đăng xuất</button>
+		        `;
+		    } else {
+		        // Nếu chưa đăng nhập, hiện nút Đăng nhập / Đăng ký
+		        authMenu.innerHTML = `
+		            <a href="login.html" style="text-decoration: none; background-color: #6b5b95; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin-left: 10px;">Đăng nhập</a>
+		            <a href="register.html" style="text-decoration: none; background-color: #bfaecb; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin-left: 5px;">Đăng ký</a>
+		        `;
+		    }
+		}
+
+		function logout() {
+		    // Xóa thông tin đăng nhập khỏi localStorage
+		    localStorage.removeItem('pc_logged_in_user');
+		    alert('Đã đăng xuất tài khoản thành công!');
+		    
+		    // Tải lại trang để cập nhật giao diện
+		    location.reload();
+		}
+        async function loadHomeProducts() {
+            try {
+                const catRes = await fetch(categoryApi);
+                const categories = await catRes.json();
+                const categoriesMap = {};
+                categories.forEach(c => {
+                    categoriesMap[c.id] = c.name;
+                });
+
+                const response = await fetch(deviceApi);
+                const devices = await response.json();
+                
+                const container = document.getElementById('product-container');
+                container.innerHTML = '';
+
+                if (devices.length === 0) {
+                    container.innerHTML = '<div class="no-product">Hiện chưa có linh kiện nào trong cửa hàng.</div>';
+                    return;
+                }
+
+                devices.forEach(d => {
+                    let categoryId = (d.category && d.category.id) ? d.category.id : localStorage.getItem('device_cat_' + d.id);
+                    let categoryName = (d.category && d.category.name) ? d.category.name : (categoriesMap[categoryId] || 'Chưa phân loại');
+
+					container.innerHTML += `
+					    <div class="product-card" onclick="window.location.href='detail.html?id=${d.id}'" style="cursor: pointer;">
+					        <h3>${d.name}</h3>
+					        <div class="product-sku">Mã SKU: ${d.sku}</div>
+					        <div class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</div>
+					        <div><span class="product-category">${categoryName}</span></div>
+					    </div>
+					`;
+                });
+            } catch (err) {
+                console.error('Lỗi tải sản phẩm:', err);
+                document.getElementById('product-container').innerHTML = '<div class="no-product">Không thể kết nối đến máy chủ dữ liệu!</div>';
+            }
+        }
+    </script>
+</body>
+</html>
