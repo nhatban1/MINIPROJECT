@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Linh kiện PC</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e8e2ee; padding-bottom: 15px; }
+        h1 { margin: 0; color: #594a82; font-size: 24px; }
+        
+        .detail-container { background: #ffffff; border: 1px solid #e8e2ee; border-radius: 8px; padding: 30px; max-width: 600px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        .detail-row { margin-bottom: 15px; font-size: 15px; }
+        .detail-row label { font-weight: bold; color: #4a3d6e; display: inline-block; width: 130px; }
+        .product-price { color: #8856a7; font-weight: bold; font-size: 20px; }
+        .product-category { display: inline-block; background: #e8e2ee; color: #594a82; padding: 4px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .tag-badge { display: inline-block; background: #8878b0; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
+        
+        .button-group { margin-top: 25px; display: flex; gap: 10px; }
+        .btn { padding: 9px 16px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; border: none; cursor: pointer; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-back { background-color: #bfaecb; color: white; }
+        .btn-cart { background-color: #6b5b95; color: white; }
+        .error-msg { color: #d96868; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Thông tin chi tiết linh kiện</h1>
+    </header>
+
+    <div class="detail-container" id="product-detail">
+        <p>Đang tải thông tin sản phẩm...</p>
+    </div>
+
+    <script>
+        const deviceApi = '/api/devices';
+        let currentProduct = null;
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (productId) {
+                loadProductDetail(productId);
+            } else {
+                document.getElementById('product-detail').innerHTML = '<p class="error-msg">Không tìm thấy mã sản phẩm!</p>';
+            }
+        };
+
+        async function loadProductDetail(id) {
+            try {
+                const response = await fetch(`${deviceApi}/${id}`);
+                if (!response.ok) {
+                    throw new Error('Không thể tải dữ liệu sản phẩm');
+                }
+                const d = await response.json();
+                currentProduct = d;
+
+                let categoryName = (d.category && d.category.name) ? d.category.name : 'Chưa phân loại';
+                currentProduct.categoryName = categoryName;
+
+                let tagsHtml = '';
+                if (d.tags && d.tags.length > 0) {
+                    d.tags.forEach(t => {
+                        tagsHtml += `<span class="tag-badge">${t.name}</span>`;
+                    });
+                } else {
+                    tagsHtml = '<em>Không có nhãn dán</em>';
+                }
+
+                const container = document.getElementById('product-detail');
+                container.innerHTML = `
+                    <div class="detail-row"><label>Tên linh kiện:</label> <span style="font-size: 18px; font-weight: bold; color: #2c253d;">${d.name}</span></div>
+                    <div class="detail-row"><label>Mã SKU:</label> ${d.sku || 'N/A'}</div>
+                    <div class="detail-row"><label>Giá bán:</label> <span class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</span></div>
+                    <div class="detail-row"><label>Thuộc loại:</label> <span class="product-category">${categoryName}</span></div>
+                    <div class="detail-row"><label>Nhãn đặc tính:</label> <span>${tagsHtml}</span></div>
+                    
+                    <div class="button-group">
+                        <a href="home.html" class="btn btn-back">&larr; Quay lại cửa hàng</a>
+                        <button class="btn btn-cart" onclick="addToCart()">🛒 Thêm vào giỏ hàng</button>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Lỗi:', err);
+                document.getElementById('product-detail').innerHTML = '<p class="error-msg">Không tìm thấy sản phẩm hoặc lỗi kết nối máy chủ!</p>';
+            }
+        }
+
+        function addToCart() {
+            const loggedUser = localStorage.getItem('pc_logged_in_user');
+            if (!loggedUser) {
+                alert('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!currentProduct) return;
+
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+
+            let existingItem = cart.find(item => item.id === currentProduct.id);
+            if (existingItem) {
+                existingItem.quantity = (existingItem.quantity || 1) + 1;
+            } else {
+                cart.push({
+                    id: currentProduct.id,
+                    name: currentProduct.name,
+                    sku: currentProduct.sku || '',
+                    price: currentProduct.price,
+                    categoryName: currentProduct.categoryName,
+                    quantity: 1
+                });
+            }
+
+            localStorage.setItem('pc_cart', JSON.stringify(cart));
+            alert('Đã thêm sản phẩm vào giỏ hàng thành công!');
+        }
+    </script>
+</body>
+</html>
