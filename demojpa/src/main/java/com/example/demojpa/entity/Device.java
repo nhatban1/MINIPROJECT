@@ -1,7 +1,8 @@
-package com.example.demojpa.entity;
+package com.example.demojpa.entity; // (Hoặc package của bạn)
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "devices")
@@ -11,29 +12,30 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
     private String name;
+    
+    private String sku; // <-- Bổ sung trường SKU này vào đây
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String sku; // Mã linh kiện (thay thế cho email)
+    private Double price;
 
-    private double price; // Giá (thay thế cho tuổi/age)
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    // Quan hệ 1:N với Category
+    @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonBackReference
     private Category category;
 
-    public Device() {
-    }
+    // Quan hệ N:N với Tag (tự sinh bảng trung gian device_tag)
+    @ManyToMany
+    @JoinTable(
+        name = "device_tag",
+        joinColumns = @JoinColumn(name = "device_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags = new ArrayList<>();
 
-    public Device(String name, String sku, double price) {
-        this.name = name;
-        this.sku = sku;
-        this.price = price;
-    }
+    public Device() {}
 
-    // Getters and Setters
+    // --- GETTERS VÀ SETTERS (Đầy đủ cho tất cả các trường) ---
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -43,9 +45,12 @@ public class Device {
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
+
+    public List<Tag> getTags() { return tags; }
+    public void setTags(List<Tag> tags) { this.tags = tags; }
 }

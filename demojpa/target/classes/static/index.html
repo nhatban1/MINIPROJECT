@@ -5,17 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Linh kiện PC</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
-        .container { display: flex; gap: 20px; flex-wrap: wrap; }
-        .box { background: #fff; padding: 15px; border: 1px solid #ddd; width: 320px; }
-        .form-group { margin-bottom: 10px; }
-        label { display: inline-block; width: 95px; }
-        input, select { padding: 5px; width: 200px; }
-        button { padding: 6px 12px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .actions button { margin-right: 5px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; }
+        h2 { color: #594a82; margin-top: 0; margin-bottom: 20px; font-size: 22px; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .box { background: #ffffff; padding: 20px; border: 1px solid #e8e2ee; border-radius: 8px; width: 320px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        .box h3 { color: #4a3d6e; font-size: 16px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: inline-block; width: 95px; font-size: 14px; color: #4a3d6e; font-weight: bold; }
+        input, select { padding: 8px; width: 200px; border: 1px solid #dcd6e4; border-radius: 6px; background: #faf8fc; box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: #8878b0; background: #fff; }
+        
+        button { padding: 8px 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-primary { background-color: #6b5b95; color: white; }
+        .btn-success { background-color: #72a0c1; color: white; }
+        .btn-warning { background-color: #e0b42b; color: white; }
+        .btn-danger { background-color: #d96868; color: white; }
+        .btn-secondary { background-color: #bfaecb; color: white; }
+
+        table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); border: 1px solid #e8e2ee; }
+        th, td { border-bottom: 1px solid #e8e2ee; padding: 12px 15px; text-align: left; font-size: 14px; }
+        th { background-color: #e8e2ee; color: #4a3d6e; font-weight: bold; }
+        tr:hover { background-color: #faf8fc; }
+        .actions button { margin-right: 5px; padding: 6px 10px; }
+        
+        .tag-badge { display: inline-block; background: #8878b0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; }
     </style>
 </head>
 <body>
@@ -44,8 +58,16 @@
                     <option value="">-- Chọn Danh mục --</option>
                 </select>
             </div>
-            <button onclick="saveDevice()">Lưu Linh Kiện</button>
-            <button onclick="resetForm()" style="background-color: #ccc;">Hủy</button>
+            <div class="form-group">
+                <label for="tags">Nhãn (Tags):</label>
+                <select id="tags" multiple style="height: 70px;">
+                    <!-- Danh sách Tag nạp tự động -->
+                </select>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn-primary" onclick="saveDevice()">Lưu Linh Kiện</button>
+                <button class="btn-secondary" onclick="resetForm()">Hủy</button>
+            </div>
         </div>
 
         <!-- Form Danh Mục (Categories) -->
@@ -55,7 +77,9 @@
                 <label for="categoryName">Tên danh mục:</label>
                 <input type="text" id="categoryName" required>
             </div>
-            <button onclick="saveCategory()" style="background-color: #28a745; color: white;">Thêm Danh Mục</button>
+            <div style="margin-top: 15px;">
+                <button class="btn-success" onclick="saveCategory()">Thêm Danh Mục</button>
+            </div>
         </div>
     </div>
 
@@ -68,6 +92,7 @@
                 <th>Mã SKU</th>
                 <th>Giá</th>
                 <th>Danh mục</th>
+                <th>Nhãn dán (Tags)</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -77,25 +102,35 @@
     <script>
         const deviceApi = '/api/devices';
         const categoryApi = '/api/categories';
-
-        let categoriesMap = {}; // Lưu tên danh mục theo ID
+        const tagApi = '/api/tags';
 
         window.onload = loadData;
 
         async function loadData() {
             try {
-                // 1. Tải danh mục trước
+                // 1. Tải danh mục
                 const catRes = await fetch(categoryApi);
                 const categories = await catRes.json();
-                
-                const select = document.getElementById('category');
-                select.innerHTML = '<option value="">-- Chọn Danh mục --</option>';
+                const selectCat = document.getElementById('category');
+                selectCat.innerHTML = '<option value="">-- Chọn Danh mục --</option>';
                 categories.forEach(c => {
-                    categoriesMap[c.id] = c.name;
-                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                    selectCat.innerHTML += `<option value="${c.id}">${c.name}</option>`;
                 });
 
-                // 2. Tải danh sách linh kiện sau
+                // 2. Tải danh sách Tag (N:N)
+                try {
+                    const tagRes = await fetch(tagApi);
+                    if (tagRes.ok) {
+                        const tags = await tagRes.json();
+                        const selectTag = document.getElementById('tags');
+                        selectTag.innerHTML = '';
+                        tags.forEach(t => {
+                            selectTag.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+                        });
+                    }
+                } catch(e) { console.log('Chưa cấu hình API Tags'); }
+
+                // 3. Tải danh sách Linh kiện
                 const devRes = await fetch(deviceApi);
                 const devices = await devRes.json();
                 
@@ -103,19 +138,31 @@
                 tbody.innerHTML = '';
                 
                 devices.forEach(d => {
-                    let categoryId = (d.category && d.category.id) ? d.category.id : localStorage.getItem('device_cat_' + d.id);
-                    let categoryName = (d.category && d.category.name) ? d.category.name : (categoriesMap[categoryId] || 'Chưa có');
+                    let categoryName = (d.category && d.category.name) ? d.category.name : 'Chưa có';
+                    let categoryId = d.category ? d.category.id : '';
+                    
+                    let tagsHtml = '';
+                    let tagIds = [];
+                    if (d.tags && d.tags.length > 0) {
+                        d.tags.forEach(t => {
+                            tagsHtml += `<span class="tag-badge">${t.name}</span>`;
+                            tagIds.push(t.id);
+                        });
+                    } else {
+                        tagsHtml = '<span style="color:#999; font-size:12px;">Không có</span>';
+                    }
 
                     tbody.innerHTML += `
                         <tr>
                             <td>${d.id}</td>
-                            <td>${d.name}</td>
-                            <td>${d.sku}</td>
-                            <td>${d.price}</td>
+                            <td style="font-weight:bold;">${d.name}</td>
+                            <td>${d.sku || ''}</td>
+                            <td>${Number(d.price).toLocaleString('vi-VN')} VNĐ</td>
                             <td>${categoryName}</td>
+                            <td>${tagsHtml}</td>
                             <td class="actions">
-                                <button onclick="editDevice(${d.id}, '${d.name}', '${d.sku}', ${d.price}, '${categoryId || ''}')" style="background-color: #ffc107;">Sửa</button>
-                                <button onclick="deleteDevice(${d.id})" style="background-color: #ff4d4d; color: white;">Xóa</button>
+                                <button class="btn-warning" onclick="editDevice(${d.id}, '${d.name}', '${d.sku || ''}', ${d.price}, '${categoryId}', ${JSON.stringify(tagIds)})">Sửa</button>
+                                <button class="btn-danger" onclick="deleteDevice(${d.id})">Xóa</button>
                             </td>
                         </tr>
                     `;
@@ -142,67 +189,70 @@
             });
         }
 
-        async function saveDevice() {
-            const id = document.getElementById('device-id').value;
-            const name = document.getElementById('name').value;
-            const sku = document.getElementById('sku').value;
-            const price = document.getElementById('price').value;
-            const categoryId = document.getElementById('category').value;
+		async function saveDevice() {
+		    const id = document.getElementById('device-id').value;
+		    const name = document.getElementById('name').value;
+		    const sku = document.getElementById('sku').value;
+		    const price = document.getElementById('price').value;
+		    const categoryId = document.getElementById('category').value;
 
-            if (!name || !sku || !price || !categoryId) {
-                alert('Vui lòng điền đủ thông tin và chọn danh mục!');
-                return;
-            }
+		    if (!name || !price || !categoryId) {
+		        alert('Vui lòng nhập Tên, Giá và Chọn Danh mục!');
+		        return;
+		    }
 
-            // Khớp 100% với DeviceRequest.java (name, sku, price, categoryId)
-            const data = {
-                name: name,
-                sku: sku,
-                price: parseFloat(price),
-                categoryId: parseInt(categoryId)
-            };
+		    // Gom danh sách các Tag được chọn
+		    const selectedTagOptions = Array.from(document.getElementById('tags').selectedOptions);
+		    const tagsData = selectedTagOptions.map(opt => ({ id: parseInt(opt.value) }));
 
-            try {
-                if (id) {
-                    await fetch(`${deviceApi}/${id}`, { method: 'DELETE' });
-                    localStorage.removeItem('device_cat_' + id);
-                }
+		    // Dữ liệu gửi lên
+		    const data = {
+		        name: name,
+		        sku: sku,
+		        price: parseFloat(price),
+		        category: { id: parseInt(categoryId) },
+		        tags: tagsData
+		    };
 
-                const res = await fetch(deviceApi, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+		    // QUAN TRỌNG: Nếu có ID thì nhét ID vào cục data để JPA biết đây là thao tác Cập nhật (Sửa)
+		    if (id) {
+		        data.id = parseInt(id);
+		    }
 
-                if (res.ok) {
-                    try {
-                        const savedDevice = await res.json();
-                        const newId = savedDevice.id || id;
-                        if (newId) {
-                            localStorage.setItem('device_cat_' + newId, categoryId);
-                        }
-                    } catch (e) {
-                        if (id) localStorage.setItem('device_cat_' + id, categoryId);
-                    }
+		    try {
+		        // Luôn dùng phương thức POST vì Spring Boot tự lo việc Thêm hoặc Sửa dựa vào có id hay không
+		        const res = await fetch(deviceApi, {
+		            method: 'POST',
+		            headers: { 'Content-Type': 'application/json' },
+		            body: JSON.stringify(data)
+		        });
 
-                    alert('Lưu linh kiện thành công!');
-                    resetForm();
-                    loadData();
-                } else {
-                    const errText = await res.text();
-                    alert('Lưu thất bại (Mã SKU có thể bị trùng): ' + errText);
-                }
-            } catch (err) {
-                console.error('Lỗi:', err);
-            }
-        }
+		        if (res.ok) {
+		            alert('Lưu linh kiện thành công!');
+		            resetForm();
+		            loadData();
+		        } else {
+		            const errText = await res.text();
+		            alert('Lưu thất bại: ' + errText);
+		        }
+		    } catch (err) {
+		        console.error('Lỗi:', err);
+		    }
+		}
 
-        function editDevice(id, name, sku, price, categoryId) {
+        function editDevice(id, name, sku, price, categoryId, tagIds) {
             document.getElementById('device-id').value = id;
             document.getElementById('name').value = name;
             document.getElementById('sku').value = sku;
             document.getElementById('price').value = price;
             document.getElementById('category').value = categoryId;
+            
+            // Chọn lại các Tag tương ứng
+            const tagSelect = document.getElementById('tags');
+            Array.from(tagSelect.options).forEach(option => {
+                option.selected = tagIds.includes(parseInt(option.value));
+            });
+
             document.getElementById('form-title').innerText = 'Cập nhật Linh Kiện (ID: ' + id + ')';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -212,7 +262,6 @@
                 fetch(`${deviceApi}/${id}`, { method: 'DELETE' })
                     .then(res => {
                         if (res.ok) {
-                            localStorage.removeItem('device_cat_' + id);
                             loadData();
                         } else {
                             alert('Xóa thất bại!');
@@ -227,6 +276,8 @@
             document.getElementById('sku').value = '';
             document.getElementById('price').value = '';
             document.getElementById('category').value = '';
+            const tagSelect = document.getElementById('tags');
+            Array.from(tagSelect.options).forEach(opt => opt.selected = false);
             document.getElementById('form-title').innerText = 'Thêm Linh Kiện Mới';
         }
     </script>

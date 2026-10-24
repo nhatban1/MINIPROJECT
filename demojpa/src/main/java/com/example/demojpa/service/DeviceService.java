@@ -1,43 +1,33 @@
 package com.example.demojpa.service;
 
-import org.springframework.stereotype.Service;
-import com.example.demojpa.dto.DeviceRequest;
-import com.example.demojpa.entity.Category;
 import com.example.demojpa.entity.Device;
-import com.example.demojpa.repository.CategoryRepository;
 import com.example.demojpa.repository.DeviceRepository;
+import org.springframework.stereotype.Service;
 import java.util.List;
 
-@Service
+@Service // Báo cho Spring Boot biết đây là tầng xử lý nghiệp vụ
 public class DeviceService {
 
+    // Tiêm (inject) Repository vào để dùng
     private final DeviceRepository deviceRepository;
-    private final CategoryRepository categoryRepository;
 
-    public DeviceService(DeviceRepository deviceRepository, CategoryRepository categoryRepository) {
+    public DeviceService(DeviceRepository deviceRepository) {
         this.deviceRepository = deviceRepository;
-        this.categoryRepository = categoryRepository;
     }
 
+    // 1. Lấy toàn bộ danh sách linh kiện
     public List<Device> getAllDevices() {
         return deviceRepository.findAll();
     }
-
     public Device getDeviceById(Long id) {
-        return deviceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Device not found with ID: " + id));
+        return deviceRepository.findById(id).orElse(null);
     }
-
-    public Device createDevice(DeviceRequest request) {
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + request.getCategoryId()));
-
-        Device device = new Device(request.getName(), request.getSku(), request.getPrice());
-        device.setCategory(category);
-
+    // 2. Lưu hoặc Sửa linh kiện
+    public Device saveDevice(Device device) {
         return deviceRepository.save(device);
     }
 
+    // 3. Xóa linh kiện theo ID
     public void deleteDevice(Long id) {
         deviceRepository.deleteById(id);
     }

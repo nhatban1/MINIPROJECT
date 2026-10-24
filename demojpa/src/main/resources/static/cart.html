@@ -9,13 +9,11 @@
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e8e2ee; padding-bottom: 15px; }
         h1 { margin: 0; color: #594a82; font-size: 24px; }
         
-        /* Bảng giỏ hàng */
         table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); border: 1px solid #e8e2ee; margin-bottom: 20px; }
         th, td { border-bottom: 1px solid #e8e2ee; padding: 12px 15px; text-align: left; font-size: 14px; }
         th { background-color: #e8e2ee; color: #4a3d6e; font-weight: bold; }
         tr:hover { background-color: #faf8fc; }
         
-        /* Tổng tiền và nút bấm */
         .cart-summary { display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e8e2ee; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
         .total-price { font-size: 18px; font-weight: bold; color: #8856a7; }
         
@@ -33,9 +31,7 @@
         <h1>Giỏ hàng của bạn</h1>
     </header>
 
-    <div id="cart-content">
-        <!-- Nội dung giỏ hàng hiển thị ở đây -->
-    </div>
+    <div id="cart-content"></div>
 
     <script>
         window.onload = function() {
@@ -81,7 +77,7 @@
                 html += `
                     <tr>
                         <td style="font-weight: bold; color: #2c253d;">${item.name}</td>
-                        <td>${item.sku}</td>
+                        <td>${item.sku || 'N/A'}</td>
                         <td>${item.categoryName || 'Chưa phân loại'}</td>
                         <td>${Number(item.price).toLocaleString('vi-VN')} VNĐ</td>
                         <td>${item.quantity}</td>
