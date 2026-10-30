@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Cửa hàng Linh kiện PC</title>
+    <style>
+        :root {
+            --bg-main: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e5e7eb;
+            --header-bg: #ffffff;
+            --badge-bg: #e0e7ff;
+            --badge-text: #3730a3;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #111827;
+            --card-bg: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --border-color: #374151;
+            --header-bg: #1f2937;
+            --badge-bg: #312e81;
+            --badge-text: #c7d2fe;
+        }
+
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 25px; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background-color: var(--header-bg); padding: 15px 25px; border-radius: 10px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        h1 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+        
+        /* Nút chuyển Dark/Light Mode dạng text đơn giản */
+        .theme-toggle { background: none; border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .theme-toggle:hover { background-color: var(--border-color); }
+
+        /* Banner giới thiệu cửa hàng nhỏ */
+        .store-banner { background: linear-gradient(135deg, var(--primary), #818cf8); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
+        .store-banner h2 { margin: 0 0 10px 0; font-size: 24px; }
+        .store-banner p { margin: 0; opacity: 0.9; font-size: 14px; }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .toolbar h3 { margin: 0; font-size: 18px; color: var(--text-main); }
+        
+        .search-box { padding: 8px 14px; width: 280px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-main); font-size: 13px; }
+        .search-box:focus { outline: none; border-color: var(--primary); }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: var(--primary); }
+        
+        .product-card h4 { margin: 0 0 8px 0; color: var(--text-main); font-size: 16px; font-weight: 600; line-height: 1.4; }
+        .product-sku { color: var(--text-muted); font-size: 12px; margin-bottom: 12px; }
+        .product-price { color: var(--primary); font-weight: 700; font-size: 17px; margin: 10px 0; }
+        
+        .product-category { display: inline-block; background: var(--badge-bg); color: var(--badge-text); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .tag-badge { display: inline-block; background: var(--border-color); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; margin-top: 6px; font-weight: 500; }
+        
+        .btn-cart-nav { text-decoration: none; background-color: var(--primary); color: white; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        .btn-cart-nav:hover { background-color: var(--primary-hover); }
+        
+        .no-product { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px; font-size: 14px; background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--border-color); }
+    </style>
+</head>
+<body data-theme="light">
+
+    <header>
+        <h1>Trang Linh Kiện PC</h1>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Chế độ: Sáng</button>
+            <div id="auth-menu" style="display: flex; align-items: center; gap: 10px;"></div>
+        </div>
+    </header>
+
+    <div class="store-banner">
+        <h2>Linh kiện PC Chính hãng & Hiệu năng cao</h2>
+        <p>Khám phá các dòng CPU, VGA, RAM và phụ kiện máy tính mới nhất phục vụ cho học tập, làm việc và gaming.</p>
+    </div>
+
+    <div class="toolbar">
+        <h3>Danh mục sản phẩm nổi bật</h3>
+        <input type="text" id="search-input" class="search-box" placeholder="Tìm kiếm nhanh tên linh kiện..." onkeyup="filterProducts()">
+    </div>
+
+    <div class="product-grid" id="product-container"></div>
+
+    <script>
+        const deviceApi = '/api/devices';
+        let allDevices = [];
+
+        window.onload = function() {
+            // Khôi phục theme đã lưu trước đó nếu có
+            const savedTheme = localStorage.getItem('pc_theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeButtonText(savedTheme);
+
+            loadHomeProducts();
+            checkAuthStatus();
+        };
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('pc_theme', newTheme);
+            updateThemeButtonText(newTheme);
+        }
+
+        function updateThemeButtonText(theme) {
+            const btn = document.getElementById('theme-btn');
+            btn.innerText = theme === 'light' ? 'Chế độ: Sáng' : 'Chế độ: Tối';
+        }
+
+        function checkAuthStatus() {
+            const loggedUser = localStorage.getItem('pc_logged_in_user');
+            const authMenu = document.getElementById('auth-menu');
+
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+            let cartCount = cart.reduce((total, item) => total + (item.quantity || 1), 0);
+
+            if (loggedUser) {
+                authMenu.innerHTML = `
+                    <span style="font-weight: 600; font-size: 13px; color: var(--text-main);">Hi, ${loggedUser}</span>
+                    <a href="cart.html" class="btn-cart-nav">🛒 Giỏ (${cartCount})</a>
+                    <button onclick="logout()" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">Đăng xuất</button>
+                `;
+            } else {
+                authMenu.innerHTML = `
+                    <a href="cart.html" class="btn-cart-nav">🛒 Giỏ (${cartCount})</a>
+                    <a href="login.html" style="text-decoration: none; background-color: var(--primary); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 13px;">Đăng nhập</a>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('pc_logged_in_user');
+            alert('Đã đăng xuất tài khoản!');
+            location.reload();
+        }
+
+        async function loadHomeProducts() {
+            try {
+                const response = await fetch(deviceApi);
+                allDevices = await response.json();
+                displayProducts(allDevices);
+            } catch (err) {
+                console.error('Lỗi tải sản phẩm:', err);
+                document.getElementById('product-container').innerHTML = '<div class="no-product">Không thể kết nối đến máy chủ dữ liệu!</div>';
+            }
+        }
+
+        function displayProducts(devices) {
+            const container = document.getElementById('product-container');
+            container.innerHTML = '';
+
+            if (devices.length === 0) {
+                container.innerHTML = '<div class="no-product">Không tìm thấy linh kiện phù hợp.</div>';
+                return;
+            }
+
+            devices.forEach(d => {
+                let categoryName = (d.category && d.category.name) ? d.category.name : 'Chưa phân loại';
+                
+                let tagsHtml = '';
+                if (d.tags && d.tags.length > 0) {
+                    d.tags.forEach(t => {
+                        tagsHtml += `<span class="tag-badge">#${t.name}</span>`;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="product-card" onclick="window.location.href='detail.html?id=${d.id}'">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 6px;">
+                                <span class="product-category">${categoryName}</span>
+                            </div>
+                            <h4>${d.name}</h4>
+                            <div class="product-sku">SKU: ${d.sku || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</div>
+                            <div>${tagsHtml}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterProducts() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allDevices.filter(d => d.name.toLowerCase().includes(keyword) || (d.sku && d.sku.toLowerCase().includes(keyword)));
+            displayProducts(filtered);
+        }
+    </script>
+</body>
+</html>
