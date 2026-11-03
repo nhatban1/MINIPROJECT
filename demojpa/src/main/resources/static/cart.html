@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - Cửa hàng Linh kiện PC</title>
+    <style>
+        :root {
+            --primary: #594a82;
+            --primary-light: #6b5b95;
+            --accent: #8878b0;
+            --bg-main: #f7f5fa;
+            --card-bg: #ffffff;
+            --border-color: #e8e2ee;
+            --text-dark: #2c253d;
+            --text-muted: #7a738c;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 25px; background-color: var(--bg-main); color: var(--text-dark); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
+        h1 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 700; }
+        
+        .cart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .cart-grid { grid-template-columns: 1fr; } }
+
+        .table-responsive { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        th { background-color: #eae5f2; color: var(--primary); font-weight: 700; }
+        
+        .qty-btn { background: #e8e2ee; border: none; padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        .order-summary { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); height: fit-content; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 12px; border-top: 2px solid var(--border-color); font-size: 16px; font-weight: 700; color: var(--primary); }
+        
+        .btn { width: 100%; padding: 11px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; margin-top: 15px; text-align: center; display: inline-block; box-sizing: border-box; }
+        .btn-success { background-color: #72a0c1; color: white; }
+        .btn-back { background-color: #bfaecb; color: white; margin-top: 10px; }
+        .btn-danger { background-color: #d96868; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; }
+        
+        .empty-cart { text-align: center; color: var(--text-muted); padding: 50px; font-size: 15px; background: var(--card-bg); border-radius: 8px; border: 1px dashed var(--border-color); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Giỏ hàng mua sắm</h1>
+    </header>
+
+    <div id="cart-content"></div>
+
+    <script>
+        window.onload = function() {
+            loadCart();
+        };
+
+        function loadCart() {
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+            const container = document.getElementById('cart-content');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <p>Giỏ hàng của bạn đang trống.</p>
+                        <a href="home.html" class="btn btn-back" style="width: auto; padding: 8px 16px;">&larr; Tiếp tục chọn linh kiện</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableRows = '';
+            let subtotal = 0;
+
+            cart.forEach((item, index) => {
+                let itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+
+                tableRows += `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--text-dark);">${item.name}</td>
+                        <td><code>${item.sku || 'N/A'}</code></td>
+                        <td>${Number(item.price).toLocaleString('vi-VN')} VNĐ</td>
+                        <td>
+                            <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                            <span style="margin: 0 8px; font-weight:600;">${item.quantity}</span>
+                            <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                        </td>
+                        <td style="font-weight: 600; color: #8856a7;">${Number(itemTotal).toLocaleString('vi-VN')} VNĐ</td>
+                        <td>
+                            <button class="btn-danger" onclick="removeItem(${index})">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            let shipping = subtotal > 10000000 ? 0 : 30000;
+
+            container.innerHTML = `
+                <div class="cart-grid">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>SKU</th>
+                                    <th>Đơn giá</th>
+                                    <th>Số lượng</th>
+                                    <th>Thành tiền</th>
+                                    <th>Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="order-summary">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Tóm tắt đơn hàng</h3>
+                        <div class="summary-row">
+                            <span>Tạm tính linh kiện:</span>
+                            <span>${Number(subtotal).toLocaleString('vi-VN')} VNĐ</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Phí giao hàng:</span>
+                            <span>${shipping === 0 ? 'Miễn phí' : Number(shipping).toLocaleString('vi-VN') + ' VNĐ'}</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Tổng thanh toán:</span>
+                            <span>${Number(subtotal + shipping).toLocaleString('vi-VN')} VNĐ</span>
+                        </div>
+                        <button class="btn btn-success" onclick="checkout()">Xác nhận thanh toán</button>
+                        <a href="home.html" class="btn btn-back">&larr; Tiếp tục mua sắm</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateQty(index, delta) {
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+            if (cart[index]) {
+                cart[index].quantity += delta;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+            }
+            localStorage.setItem('pc_cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function removeItem(index) {
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('pc_cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function checkout() {
+            alert('Thanh toán đơn hàng thành công! Cảm ơn bạn đã mua sắm tại cửa hàng.');
+            localStorage.removeItem('pc_cart');
+            loadCart();
+        }
+    </script>
+</body>
+</html>

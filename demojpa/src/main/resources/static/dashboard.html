@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Bán Linh kiện PC</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f5fa; display: flex; height: 100vh; overflow: hidden; }
+        
+        sidebar { width: 250px; background: #6b5b95; color: white; height: 100%; padding-top: 20px; box-sizing: border-box; flex-shrink: 0; box-shadow: 2px 0 8px rgba(107, 91, 149, 0.15); display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar-top h2 { text-align: center; font-size: 18px; margin-bottom: 20px; color: #f3eff5; letter-spacing: 0.5px; }
+        .sidebar-top a { display: block; color: #dcd6e4; padding: 15px 20px; text-decoration: none; font-size: 15px; transition: 0.2s; cursor: pointer; border-left: 4px solid transparent; font-weight: bold; }
+        .sidebar-top a:hover { background: #594a82; color: white; }
+        .sidebar-top a.active { background: #8878b0; color: white; border-left: 4px solid #dcd6e4; }
+
+        .user-panel { padding: 15px 20px; background: #594a82; font-size: 13px; border-top: 1px solid #7a6c9e; }
+        .user-panel b { color: #ffd700; }
+        .user-panel a { color: #f3eff5; display: inline-block; margin-top: 8px; text-decoration: underline; cursor: pointer; margin-right: 10px; }
+
+        .content-area { flex-grow: 1; height: 100%; background: #ffffff; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <sidebar>
+        <div class="sidebar-top">
+            <h2>Linh Kiện PC Store</h2>
+            <a onclick="loadPage('home.html', this)" id="nav-home" class="active">Trang Chủ (Cửa hàng)</a>
+            <a onclick="loadPage('index.html', this)" id="nav-admin">Quản Lý Linh Kiện</a>
+            
+        </div>
+
+        <!-- Khu vực hiển thị trạng thái đăng nhập ở chân sidebar -->
+        <div class="user-panel" id="user-panel-box">
+            <span id="welcome-text">Đang tải tài khoản...</span>
+            <div>
+                <a id="auth-link" href="login.html">Đăng nhập</a>
+                <a id="logout-btn" style="display:none; color: #ff9999;" onclick="logout()">Đăng xuất</a>
+            </div>
+        </div>
+    </sidebar>
+
+    <div class="content-area">
+        <iframe id="main-frame" src="home.html"></iframe>
+    </div>
+
+    <script>
+        function loadPage(pageUrl, element) {
+            document.getElementById('main-frame').src = pageUrl;
+            const links = document.querySelectorAll('.sidebar-top a');
+            links.forEach(link => link.classList.remove('active'));
+            if(element) element.classList.add('active');
+        }
+
+        // Kiểm tra trạng thái đăng nhập để hiển thị lên sidebar mà không ép chuyển hướng ngầm
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = localStorage.getItem('pc_logged_in_user');
+            const welcomeText = document.getElementById('welcome-text');
+            const authLink = document.getElementById('auth-link');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            if (user && user !== 'null' && user !== 'undefined' && user.trim() !== '') {
+                welcomeText.innerHTML = `Xin chào, <b>${user}</b>`;
+                authLink.innerText = 'Đổi tài khoản';
+                authLink.href = 'login.html';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                welcomeText.innerText = 'Bạn chưa đăng nhập';
+                authLink.innerText = 'Đăng nhập ngay';
+                authLink.href = 'login.html';
+                logoutBtn.style.display = 'none';
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('pc_logged_in_user');
+            alert('Đã đăng xuất thành công!');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

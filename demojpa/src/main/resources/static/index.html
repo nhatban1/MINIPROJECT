@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Linh kiện PC - Admin Dashboard</title>
+    <style>
+        :root {
+            --primary: #594a82;
+            --primary-light: #6b5b95;
+            --accent: #8878b0;
+            --bg-main: #f7f5fa;
+            --card-bg: #ffffff;
+            --border-color: #e8e2ee;
+            --text-dark: #2c253d;
+            --text-muted: #7a738c;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 25px; background-color: var(--bg-main); color: var(--text-dark); }
+        h2 { color: var(--primary); margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        
+        .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .box { background: var(--card-bg); padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; flex: 1; min-width: 280px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        .box h3 { color: var(--primary); font-size: 16px; margin-top: 0; margin-bottom: 15px; font-weight: 600; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; }
+        
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        input, select { padding: 9px 12px; border: 1px solid #dcd6e4; border-radius: 6px; background: #faf8fc; font-size: 13px; color: var(--text-dark); box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(136, 120, 176, 0.15); }
+        
+        button { padding: 9px 15px; cursor: pointer; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary { background-color: var(--primary-light); color: white; }
+        .btn-success { background-color: #5b92e5; color: white; }
+        .btn-tag { background-color: #8878b0; color: white; }
+        .btn-warning { background-color: #e0a92b; color: white; }
+        .btn-danger { background-color: #d96868; color: white; }
+        .btn-secondary { background-color: #bfaecb; color: white; }
+
+        .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        th { background-color: #eae5f2; color: var(--primary); font-weight: 700; }
+        tr:hover { background-color: #faf8fc; }
+        .actions button { margin-right: 4px; padding: 5px 10px; font-size: 12px; }
+        
+        .tag-badge { display: inline-block; background: var(--accent); color: white; padding: 2px 7px; border-radius: 4px; font-size: 11px; margin-right: 3px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <h2>Hệ thống Quản lý Bán Linh kiện PC</h2>
+    
+    <div class="container">
+        <!-- Form Linh Kiện (Devices) -->
+        <div class="box" style="flex: 2;">
+            <h3 id="form-title">Thêm Linh Kiện Mới</h3>
+            <input type="hidden" id="device-id">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="name">Tên linh kiện:</label>
+                    <input type="text" id="name" placeholder="Ví dụ: VGA RTX 4060" required>
+                </div>
+                <div class="form-group">
+                    <label for="sku">Mã SKU:</label>
+                    <input type="text" id="sku" placeholder="Ví dụ: GPU-4060-8G" required>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="price">Giá bán (VNĐ):</label>
+                    <input type="number" id="price" placeholder="8500000" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Danh mục sản phẩm:</label>
+                    <select id="category" required>
+                        <option value="">-- Chọn Danh mục --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tags">Nhãn đặc tính (Tags - Giữ Ctrl để chọn nhiều):</label>
+                <select id="tags" multiple style="height: 65px;"></select>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn-primary" onclick="saveDevice()">Lưu Linh Kiện</button>
+                <button class="btn-secondary" onclick="resetForm()">Làm mới / Hủy</button>
+            </div>
+        </div>
+
+        <!-- Form Danh Mục (Categories) -->
+        <div class="box">
+            <h3>Thêm Danh Mục</h3>
+            <div class="form-group">
+                <label for="categoryName">Tên danh mục mới:</label>
+                <input type="text" id="categoryName" placeholder="Ví dụ: Card màn hình">
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn-success" style="width: 100%;" onclick="saveCategory()">+ Thêm Danh Mục</button>
+            </div>
+        </div>
+
+        <!-- Form Nhãn (Tags) Mới -->
+        <div class="box">
+            <h3>Thêm Tag / Nhãn</h3>
+            <div class="form-group">
+                <label for="tagName">Tên Tag đặc tính mới:</label>
+                <input type="text" id="tagName" placeholder="Ví dụ: Bán chạy, Mới">
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn-tag" style="width: 100%;" onclick="saveTag()">+ Thêm Nhãn Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách Linh Kiện -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th>Tên linh kiện</th>
+                    <th>Mã SKU</th>
+                    <th>Giá bán</th>
+                    <th>Danh mục</th>
+                    <th>Nhãn đặc tính (Tags)</th>
+                    <th style="width: 130px; text-align: center;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="device-list"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const deviceApi = '/api/devices';
+        const categoryApi = '/api/categories';
+        const tagApi = '/api/tags';
+
+        window.onload = loadData;
+
+        async function loadData() {
+            try {
+                // 1. Tải danh mục
+                const catRes = await fetch(categoryApi);
+                const categories = await catRes.json();
+                const selectCat = document.getElementById('category');
+                selectCat.innerHTML = '<option value="">-- Chọn Danh mục --</option>';
+                categories.forEach(c => {
+                    selectCat.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+
+                // 2. Tải danh sách Tag
+                const tagRes = await fetch(tagApi);
+                if (tagRes.ok) {
+                    const tags = await tagRes.json();
+                    const selectTag = document.getElementById('tags');
+                    selectTag.innerHTML = '';
+                    tags.forEach(t => {
+                        selectTag.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+                    });
+                }
+
+                // 3. Tải danh sách Linh kiện
+                const devRes = await fetch(deviceApi);
+                const devices = await devRes.json();
+                
+                const tbody = document.getElementById('device-list');
+                tbody.innerHTML = '';
+                
+                devices.forEach(d => {
+                    let categoryName = (d.category && d.category.name) ? d.category.name : 'Chưa phân loại';
+                    let categoryId = d.category ? d.category.id : '';
+                    
+                    let tagsHtml = '';
+                    let tagIds = [];
+                    if (d.tags && d.tags.length > 0) {
+                        d.tags.forEach(t => {
+                            tagsHtml += `<span class="tag-badge">${t.name}</span>`;
+                            tagIds.push(t.id);
+                        });
+                    } else {
+                        tagsHtml = '<span style="color:#a098b0; font-size:12px;">Không có</span>';
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>#${d.id}</b></td>
+                            <td style="font-weight:600; color:var(--text-dark);">${d.name}</td>
+                            <td><code>${d.sku || 'N/A'}</code></td>
+                            <td style="color:var(--primary); font-weight:600;">${Number(d.price).toLocaleString('vi-VN')} VNĐ</td>
+                            <td><span style="background:#e8e2ee; padding:3px 8px; border-radius:4px; font-weight:600; font-size:11px;">${categoryName}</span></td>
+                            <td>${tagsHtml}</td>
+                            <td class="actions" style="text-align: center;">
+                                <button class="btn-warning" onclick="editDevice(${d.id}, '${d.name}', '${d.sku || ''}', ${d.price}, '${categoryId}', ${JSON.stringify(tagIds)})">Sửa</button>
+                                <button class="btn-danger" onclick="deleteDevice(${d.id})">Xóa</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error('Lỗi tải dữ liệu:', err);
+            }
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('categoryName').value;
+            if (!name) { alert('Vui lòng nhập tên danh mục!'); return; }
+
+            fetch(categoryApi, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            }).then(res => {
+                if (res.ok) {
+                    alert('Thêm danh mục thành công!');
+                    document.getElementById('categoryName').value = '';
+                    loadData();
+                } else { alert('Thêm danh mục thất bại!'); }
+            });
+        }
+
+        function saveTag() {
+            const name = document.getElementById('tagName').value.trim();
+            if (!name) { alert('Vui lòng nhập tên Tag!'); return; }
+
+            fetch(tagApi, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            }).then(res => {
+                if (res.ok) {
+                    alert('Thêm Tag mới thành công!');
+                    document.getElementById('tagName').value = '';
+                    loadData();
+                } else { alert('Thêm Tag thất bại!'); }
+            });
+        }
+
+        async function saveDevice() {
+            const id = document.getElementById('device-id').value;
+            const name = document.getElementById('name').value;
+            const sku = document.getElementById('sku').value;
+            const price = document.getElementById('price').value;
+            const categoryId = document.getElementById('category').value;
+
+            if (!name || !price || !categoryId) {
+                alert('Vui lòng nhập đầy đủ Tên, Giá và Danh mục!');
+                return;
+            }
+
+            const selectedTagOptions = Array.from(document.getElementById('tags').selectedOptions);
+            const tagsData = selectedTagOptions.map(opt => ({ id: parseInt(opt.value) }));
+
+            const data = {
+                name: name,
+                sku: sku,
+                price: parseFloat(price),
+                category: { id: parseInt(categoryId) },
+                tags: tagsData
+            };
+
+            if (id) { data.id = parseInt(id); }
+
+            try {
+                const res = await fetch(deviceApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert('Lưu thông tin linh kiện thành công!');
+                    resetForm();
+                    loadData();
+                } else {
+                    const errText = await res.text();
+                    alert('Lưu thất bại: ' + errText);
+                }
+            } catch (err) {
+                console.error('Lỗi:', err);
+            }
+        }
+
+        function editDevice(id, name, sku, price, categoryId, tagIds) {
+            document.getElementById('device-id').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('sku').value = sku;
+            document.getElementById('price').value = price;
+            document.getElementById('category').value = categoryId;
+            
+            const tagSelect = document.getElementById('tags');
+            Array.from(tagSelect.options).forEach(option => {
+                option.selected = tagIds.includes(parseInt(option.value));
+            });
+
+            document.getElementById('form-title').innerText = 'Cập nhật Linh Kiện (ID: #' + id + ')';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteDevice(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa linh kiện này?')) {
+                fetch(`${deviceApi}/${id}`, { method: 'DELETE' })
+                    .then(res => {
+                        if (res.ok) {
+                            loadData();
+                        } else {
+                            alert('Xóa linh kiện thất bại!');
+                        }
+                    });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('device-id').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('sku').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('category').value = '';
+            const tagSelect = document.getElementById('tags');
+            Array.from(tagSelect.options).forEach(opt => opt.selected = false);
+            document.getElementById('form-title').innerText = 'Thêm Linh Kiện Mới';
+        }
+    </script>
+</body>
+</html>

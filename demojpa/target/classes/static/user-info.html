@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin tài khoản - Linh kiện PC</title>
+    <style>
+        :root {
+            --primary: #594a82;
+            --primary-light: #6b5b95;
+            --bg-main: #f7f5fa;
+            --card-bg: #ffffff;
+            --border-color: #e8e2ee;
+            --text-dark: #2c253d;
+            --text-muted: #7a738c;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 30px; background-color: var(--bg-main); color: var(--text-dark); display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .card { background: var(--card-bg); padding: 30px; border-radius: 8px; width: 420px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.08); border: 1px solid var(--border-color); }
+        h2 { color: var(--primary); margin-top: 0; margin-bottom: 20px; font-size: 22px; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        
+        .info-group { margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .info-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        .info-value { font-size: 14px; color: var(--text-dark); font-weight: 700; text-align: right; max-width: 250px; word-break: break-word; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; transition: 0.2s; }
+        .btn-primary { background-color: var(--primary-light); color: white; }
+        .btn-secondary { background-color: #a69ebd; color: white; }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Thông Tin Tài Khoản</h2>
+        
+        <div class="info-group">
+            <span class="info-label">Tên đăng nhập:</span>
+            <span class="info-value" id="val-username" style="color: var(--primary);">Đang tải...</span>
+        </div>
+        <div class="info-group">
+            <span class="info-label">Họ và tên:</span>
+            <span class="info-value" id="val-fullname">Chưa cập nhật</span>
+        </div>
+        <div class="info-group">
+            <span class="info-label">Email:</span>
+            <span class="info-value" id="val-email">Chưa cập nhật</span>
+        </div>
+        <div class="info-group">
+            <span class="info-label">Số điện thoại:</span>
+            <span class="info-value" id="val-phone">Chưa cập nhật</span>
+        </div>
+        <div class="info-group">
+            <span class="info-label">Địa chỉ:</span>
+            <span class="info-value" id="val-address">Chưa cập nhật</span>
+        </div>
+
+        <div class="btn-group">
+            <a href="profile.html" class="btn btn-primary">Chỉnh sửa Hồ sơ</a>
+            <a href="home.html" class="btn btn-secondary">Quay lại Trang chủ</a>
+        </div>
+    </div>
+
+    <script>
+        const user = localStorage.getItem('pc_logged_in_user');
+
+        if (!user || user === 'null' || user === 'undefined' || user.trim() === '') {
+            alert('Vui lòng đăng nhập trước!');
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('val-username').innerText = user;
+            loadUserInfo(user);
+        }
+
+		async function loadUserInfo(username) {
+		    try {
+		        const res = await fetch(`/api/profile/${encodeURIComponent(username)}`);
+		        if (res.ok) {
+		            const text = await res.text(); // Đọc dạng text trước để tránh crash
+		            if (!text) return;
+		            const data = JSON.parse(text); // Phân tích JSON an toàn
+		            
+		            if (data) {
+		                document.getElementById('val-fullname').innerText = data.fullName || 'Chưa cập nhật';
+		                document.getElementById('val-email').innerText = data.email || 'Chưa cập nhật';
+		                document.getElementById('val-phone').innerText = data.phone || 'Chưa cập nhật';
+		                document.getElementById('val-address').innerText = data.address || 'Chưa cập nhật';
+		            }
+		        }
+		    } catch (err) {
+		        console.error('Lỗi phân tích dữ liệu profile:', err);
+		    }
+		}
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Linh kiện PC</title>
+    <style>
+        :root {
+            --primary: #594a82;
+            --primary-light: #6b5b95;
+            --accent: #8878b0;
+            --bg-main: #f7f5fa;
+            --card-bg: #ffffff;
+            --border-color: #e8e2ee;
+            --text-dark: #2c253d;
+            --text-muted: #7a738c;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 25px; background-color: var(--bg-main); color: var(--text-dark); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
+        h1 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 700; }
+        
+        .detail-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 30px; max-width: 700px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.05); margin: 0 auto; }
+        .product-title { font-size: 22px; font-weight: 700; color: var(--text-dark); margin-top: 0; margin-bottom: 10px; }
+        .product-price { color: #8856a7; font-weight: 700; font-size: 24px; margin: 15px 0; }
+        
+        .spec-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .spec-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        .spec-table td.label { font-weight: 600; color: var(--text-muted); width: 150px; background: #faf8fc; }
+        
+        .tag-badge { display: inline-block; background: var(--accent); color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
+        .stock-status { color: #2e7d32; font-weight: 600; font-size: 13px; display: inline-block; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; }
+
+        .qty-picker { display: flex; align-items: center; gap: 10px; margin: 20px 0; }
+        .qty-picker input { width: 60px; padding: 8px; text-align: center; border: 1px solid #dcd6e4; border-radius: 6px; font-weight: 600; }
+
+        .button-group { display: flex; gap: 12px; margin-top: 25px; }
+        .btn { padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-back { background-color: #bfaecb; color: white; }
+        .btn-cart { background-color: var(--primary-light); color: white; }
+        .btn-buy { background-color: #72a0c1; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .error-msg { color: #d96868; font-weight: 600; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Thông tin chi tiết linh kiện</h1>
+    </header>
+
+    <div class="detail-card" id="product-detail">
+        <p style="text-align: center; color: var(--text-muted);">Đang tải dữ liệu sản phẩm...</p>
+    </div>
+
+    <script>
+        const deviceApi = '/api/devices';
+        let currentProduct = null;
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (productId) {
+                loadProductDetail(productId);
+            } else {
+                document.getElementById('product-detail').innerHTML = '<p class="error-msg">Không tìm thấy mã sản phẩm!</p>';
+            }
+        };
+
+        async function loadProductDetail(id) {
+            try {
+                const response = await fetch(`${deviceApi}/${id}`);
+                if (!response.ok) throw new Error('Không thể tải dữ liệu');
+                const d = await response.json();
+                currentProduct = d;
+
+                let categoryName = (d.category && d.category.name) ? d.category.name : 'Chưa phân loại';
+                currentProduct.categoryName = categoryName;
+
+                let tagsHtml = '';
+                if (d.tags && d.tags.length > 0) {
+                    d.tags.forEach(t => { tagsHtml += `<span class="tag-badge">${t.name}</span>`; });
+                } else {
+                    tagsHtml = '<em style="color:var(--text-muted); font-size:13px;">Không có nhãn dán</em>';
+                }
+
+                const container = document.getElementById('product-detail');
+                container.innerHTML = `
+                    <div class="product-title">${d.name}</div>
+                    <span class="stock-status">✓ Còn hàng trong kho</span>
+                    
+                    <div class="product-price">${Number(d.price).toLocaleString('vi-VN')} VNĐ</div>
+
+                    <table class="spec-table">
+                        <tr><td class="label">Mã SKU sản phẩm</td><td><code>${d.sku || 'N/A'}</code></td></tr>
+                        <tr><td class="label">Danh mục linh kiện</td><td><b>${categoryName}</b></td></tr>
+                        <tr><td class="label">Nhãn đặc tính</td><td>${tagsHtml}</td></tr>
+                        <tr><td class="label">Chế độ bảo hành</td><td>12 tháng chính hãng</td></tr>
+                    </table>
+
+                    <div class="qty-picker">
+                        <label style="font-weight:600; font-size:14px;">Số lượng đặt mua:</label>
+                        <input type="number" id="qty-input" value="1" min="1" max="99">
+                    </div>
+
+                    <div class="button-group">
+                        <a href="home.html" class="btn btn-back">&larr; Quay lại</a>
+                        <button class="btn btn-cart" onclick="addToCart(false)">🛒 Thêm vào giỏ</button>
+                        <button class="btn btn-buy" onclick="addToCart(true)">⚡ Mua ngay</button>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Lỗi:', err);
+                document.getElementById('product-detail').innerHTML = '<p class="error-msg">Lỗi kết nối máy chủ hoặc sản phẩm không tồn tại!</p>';
+            }
+        }
+
+        function addToCart(redirect = false) {
+            const loggedUser = localStorage.getItem('pc_logged_in_user');
+            if (!loggedUser) {
+                alert('Bạn cần đăng nhập để mua sản phẩm!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!currentProduct) return;
+
+            const qty = parseInt(document.getElementById('qty-input').value) || 1;
+            let cart = JSON.parse(localStorage.getItem('pc_cart')) || [];
+
+            let existingItem = cart.find(item => item.id === currentProduct.id);
+            if (existingItem) {
+                existingItem.quantity = (existingItem.quantity || 1) + qty;
+            } else {
+                cart.push({
+                    id: currentProduct.id,
+                    name: currentProduct.name,
+                    sku: currentProduct.sku || '',
+                    price: currentProduct.price,
+                    categoryName: currentProduct.categoryName,
+                    quantity: qty
+                });
+            }
+
+            localStorage.setItem('pc_cart', JSON.stringify(cart));
+            
+            if (redirect) {
+                window.location.href = 'cart.html';
+            } else {
+                alert('Đã thêm sản phẩm vào giỏ hàng thành công!');
+            }
+        }
+    </script>
+</body>
+</html>

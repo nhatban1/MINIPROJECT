@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân - Cửa hàng Linh kiện PC</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 30px; background-color: #f7f5fa; color: #333; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .box { background: #ffffff; padding: 30px; border-radius: 8px; width: 400px; box-shadow: 0 4px 12px rgba(107, 91, 149, 0.08); border: 1px solid #e8e2ee; }
+        h2 { color: #594a82; margin-top: 0; margin-bottom: 20px; font-size: 22px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #4a3d6e; }
+        input { width: 100%; padding: 9px; box-sizing: border-box; border: 1px solid #dcd6e4; border-radius: 6px; background: #faf8fc; font-size: 13px; }
+        input:focus { outline: none; border-color: #8878b0; background: #fff; }
+        .btn { background: #6b5b95; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 14px; transition: 0.2s; margin-top: 10px; }
+        .btn:hover { opacity: 0.9; }
+        .btn-home { background-color: #7a738c; margin-top: 8px; }
+        .back-link { text-align: center; margin-top: 15px; font-size: 13px; }
+        .back-link a { color: #594a82; text-decoration: none; font-weight: bold; }
+        .back-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>Hồ sơ cá nhân</h2>
+        <p style="text-align: center; color: #7a738c; font-size: 14px; margin-bottom: 20px;">Tài khoản: <b id="username-display" style="color: #594a82;">Đang tải...</b></p>
+        
+        <div class="form-group"><label>Họ và tên:</label><input type="text" id="fullName" placeholder="Nhập họ tên..."></div>
+        <div class="form-group"><label>Email:</label><input type="email" id="email" placeholder="Nhập email..."></div>
+        <div class="form-group"><label>Số điện thoại:</label><input type="text" id="phone" placeholder="Nhập SĐT..."></div>
+        <div class="form-group"><label>Địa chỉ:</label><input type="text" id="address" placeholder="Nhập địa chỉ..."></div>
+
+        <button class="btn" onclick="saveProfile()">Lưu thay đổi hồ sơ</button>
+        <!-- Nút bấm quay về trang chủ độc lập, bấm là về ngay -->
+        <button class="btn btn-home" onclick="window.location.href='home.html'">Quay lại Trang chủ</button>
+        
+        
+    </div>
+
+	<script>
+	    const user = localStorage.getItem('pc_logged_in_user');
+	    
+	    // Kiểm tra an toàn
+	    if (!user || user === 'null' || user === 'undefined' || user.trim() === '') {
+	        alert('Vui lòng đăng nhập để tiếp tục!');
+	        window.location.href = 'login.html';
+	    } else {
+	        document.getElementById('username-display').innerText = user;
+	        loadProfile();
+	    }
+
+	    // Tải thông tin hiện tại lên form
+	    async function loadProfile() {
+	        try {
+	            const res = await fetch(`/api/profile/${encodeURIComponent(user)}`);
+	            if (res.ok) {
+	                const data = await res.json();
+	                if (data) {
+	                    document.getElementById('fullName').value = data.fullName || '';
+	                    document.getElementById('email').value = data.email || '';
+	                    document.getElementById('phone').value = data.phone || '';
+	                    document.getElementById('address').value = data.address || '';
+	                }
+	            }
+	        } catch (err) {
+	            console.error('Lỗi tải profile:', err);
+	        }
+	    }
+
+	    // Lưu thông tin hồ sơ và chuyển hướng ngay sang trang user-info.html để kiểm tra
+	    async function saveProfile() {
+	        const bodyData = {
+	            fullName: document.getElementById('fullName').value.trim(),
+	            email: document.getElementById('email').value.trim(),
+	            phone: document.getElementById('phone').value.trim(),
+	            address: document.getElementById('address').value.trim()
+	        };
+
+	        try {
+	            const res = await fetch(`/api/profile?username=${encodeURIComponent(user)}`, {
+	                method: 'POST',
+	                headers: { 'Content-Type': 'application/json' },
+	                body: JSON.stringify(bodyData)
+	            });
+
+	            if (res.ok) {
+	                alert('Cập nhật hồ sơ thành công!');
+	                // Chuyển thẳng sang trang xem thông tin để thấy ngay kết quả
+	                window.location.href = 'user-info.html';
+	            } else {
+	                alert('Cập nhật thất bại từ máy chủ!');
+	            }
+	        } catch (err) {
+	            console.error('Lỗi kết nối:', err);
+	            alert('Không thể kết nối đến máy chủ!');
+	        }
+	    }
+	</script>
+</body>
+</html>
